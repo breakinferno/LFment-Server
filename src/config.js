@@ -15,7 +15,7 @@ exports.System = {
 }
 
 exports.DB = {
-  url: 'mongodb://localhost/e-civ'
+  url: 'mongodb://localhost/LFment'
 }
 
 exports.SendEmail = {

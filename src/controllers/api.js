@@ -22,7 +22,7 @@ const Put = (ctx) => {
   }
 }
 
-const Delect = (ctx) => {
+const Delete = (ctx) => {
   ctx.body = {
     result: 'delect',
     name: ctx.params.name,
@@ -34,5 +34,5 @@ module.exports = {
   Get,
   Post,
   Put,
-  Delect
+  Delete
 }

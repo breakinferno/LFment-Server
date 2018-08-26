@@ -13,6 +13,6 @@ router
   .get('/api/:name', controllers.api.Get)
   .post('/api/:name', controllers.api.Post)
   .put('/api/:name', controllers.api.Put)
-  .del('/api/:name', controllers.api.Delect)
+  .del('/api/:name', controllers.api.Delete)
 
 module.exports = router

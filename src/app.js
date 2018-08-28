@@ -42,6 +42,7 @@ if (env === 'development') { // logger
 app
   .use(cors({
     origin: function (ctx) {
+      console.log(ctx.request)
       if (ctx.request.header.host.split(':')[0] === 'localhost' || ctx.request.header.host.split(':')[0] === '127.0.0.1') {
         return '*'
       } else {

@@ -11,6 +11,7 @@
     "test": "mocha --inspect -t 4000 -w  src/test/**/*.test.js"
   },
   "dependencies": {
+    "base-64": "^0.1.0",
     "bcrypt": "^1.0.3",
     "chalk": "^2.3.0",
     "dateformat": "^3.0.2",

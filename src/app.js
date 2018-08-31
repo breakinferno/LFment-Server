@@ -7,7 +7,8 @@ const DBConfig = require('./config').DB
 
 const path = require('path')
 const routes = require('./routes/index')
-const ErrorRoutesCatch = require('./middleware/ErrorRoutesCatch').default
+const ErrorRoutesCatch = require('./middleware/ErrorRoutesCatch')
+const AuthValidator = require('./middleware/AuthValidator')
 const ErrorRoutes = require('./routes/error-routes')
 
 const customizedLogger = require('./tool/customized-winston-logger')
@@ -56,15 +57,7 @@ app
   .use(ErrorRoutesCatch())
   .use(KoaStatic('assets', path.resolve(__dirname, '../assets'))) // Static resource
   // 检查请求是否合法
-  .use(async (ctx, next) => {
-    if (!applications) {
-      // 从数据库获取applications
-
-    }
-    // 校验是否正确
-    console.log('authorization: ', 'fail')
-    return next()
-  })
+  .use(AuthValidator())
   .use(KoaBody({
     multipart: true,
     strict: false,

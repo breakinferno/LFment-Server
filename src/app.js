@@ -13,9 +13,6 @@ const ErrorRoutes = require('./routes/error-routes')
 
 const customizedLogger = require('./tool/customized-winston-logger')
 const mongoose = require('mongoose')
-// import PluginLoader from './lib/PluginLoader'
-
-let applications
 
 global.logger = customizedLogger
 
@@ -43,7 +40,6 @@ if (env === 'development') { // logger
 app
   .use(cors({
     origin: function (ctx) {
-      console.log(ctx.request)
       if (ctx.request.header.host.split(':')[0] === 'localhost' || ctx.request.header.host.split(':')[0] === '127.0.0.1') {
         return '*'
       } else {
@@ -56,8 +52,6 @@ app
   }))
   .use(ErrorRoutesCatch())
   .use(KoaStatic('assets', path.resolve(__dirname, '../assets'))) // Static resource
-  // 检查请求是否合法
-  .use(AuthValidator())
   .use(KoaBody({
     multipart: true,
     strict: false,
@@ -69,6 +63,8 @@ app
     formLimit: '10mb',
     textLimit: '10mb'
   }))
+  // 检查请求是否合法
+  .use(AuthValidator())
   .use(routes)
   .use(ErrorRoutes())
 app.listen(SystemConfig.API_server_port)

@@ -18,6 +18,10 @@ exports.DB = {
   url: 'mongodb://127.0.0.1/LFment'
 }
 
+exports.Redis = {
+  url: '[redis[s]:]//[[user][:password@]][host][:port][/db-number][?db=db-number[&password=bar[&option=value]]]'
+}
+
 exports.SendEmail = {
   service: 'smtp.abcd.com', // SMTP服务提供商域名
   username: 'postmaster%40abcd.com', // 用户名/用户邮箱

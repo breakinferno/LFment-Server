@@ -10,6 +10,18 @@ const routes = require('./routes/index')
 const ErrorRoutesCatch = require('./middleware/ErrorRoutesCatch')
 const AuthValidator = require('./middleware/AuthValidator')
 const ErrorRoutes = require('./routes/error-routes')
+const Redis = require('./tool/redis')
+const redis = require('redis')
+const client = redis.createClient()
+
+// if you'd like to select database 3, instead of 0 (default), call
+// client.select(3, function() { /* ... */ });
+
+client.on('error', function (err) {
+  console.log('Error ' + err)
+})
+
+const iRedis = new Redis(client)
 
 const customizedLogger = require('./tool/customized-winston-logger')
 const mongoose = require('mongoose')
@@ -64,7 +76,7 @@ app
     textLimit: '10mb'
   }))
   // 检查请求是否合法
-  .use(AuthValidator())
+  .use(AuthValidator(iRedis))
   .use(routes)
   .use(ErrorRoutes())
 app.listen(SystemConfig.API_server_port)

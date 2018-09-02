@@ -17,8 +17,11 @@
 ```
 
 一个目标下评论的数量级：
+
     <=1000 简单的一个 单个评论文档没什么多说的
+
     <=100000 分块处理，一个块100条评论，数据结构如下
+
     >100000 三级分块 分部分处理，一个部分100块
 ```javascript
 // 基本结构
@@ -29,7 +32,7 @@
     "content":                  // 评论内容
     "createdTime":                     // 评论时间
     "updateTime":
-    "extra": {
+    "extra": {                  // 可选
         "user": {
             "avatar":
             "nickname":
@@ -63,6 +66,8 @@
 ```
 
 只是简单的记录评论信息即可，其他信息可由第三方App提供。
+![数据库概览](https://github.com/breakinferno/LFment-Server/blob/master/db.png)
+
 
 ## 密钥生成
 
@@ -83,6 +88,8 @@ const secretKey = RSA.exportKey('pkcs8-private-pem')
 
 sdk安全措施：对数据进行加密传输的是加密的数据， 然后对原始数据进行签名，将改签名追加到请求中，每个请求生成uuid.v4的唯一id
 
+校验流程：数据项解密 => 根据appkey获取appsecret => 根据appsecret校验签名 => 根据timestamp判断是否超时 => 根据reqId判断是否重复请求 => 讲reqId加入redis并设置过期时间 => 校验通过
+
 #### 加密和签名
 
 <!-- 允许自定义签名算法 -->
@@ -94,7 +101,7 @@ sdk安全措施：对数据进行加密传输的是加密的数据， 然后对�
 {
   "appkey": AppKey
   "timestamp": Date.now()
-  ...   // 这里是传递的数据
+  ...data   // 这里是传递的数据
 }
 
 // 签名的数据结构 signData
@@ -113,9 +120,12 @@ sdk安全措施：对数据进行加密传输的是加密的数据， 然后对�
 
 防重放攻击： timestamp + requestId + 布隆过滤器(考虑了一下普通的键值对也可以，只不过占用资源比较多)
 
+一个请求过来 => timestamp和现在时间是否小于指定值 => redis是否已经存在reqId => redis加入reqId并且设置过期时间
+
 #### 传输安全
 
 数据传输是否安全： 以后再说 采用https 。。要搞证书等等
+
 
 ## Response
 

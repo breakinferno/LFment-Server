@@ -14,12 +14,13 @@ exports.System = {
   db_type: 'mongodb' // 数据库类型
 }
 
-exports.DB = {
+exports.MongoDB = {
   url: 'mongodb://127.0.0.1/LFment'
 }
 
 exports.Redis = {
-  url: '[redis[s]:]//[[user][:password@]][host][:port][/db-number][?db=db-number[&password=bar[&option=value]]]'
+  url: '[redis[s]:]//[[user][:password@]][host][:port][/db-number][?db=db-number[&password=bar[&option=value]]]',
+  expire_time: 3 * 60 * 1000 // 3分钟
 }
 
 exports.SendEmail = {

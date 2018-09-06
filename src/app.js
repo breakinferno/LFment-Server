@@ -3,8 +3,8 @@ const KoaBody = require('koa-body')
 const KoaStatic = require('koa-static2')
 const cors = require('koa2-cors')
 const SystemConfig = require('./config').System
-const DBConfig = require('./config').DB
-
+const DBConfig = require('./config').MongoDB
+const CtxHanlder = require('./middleware/ctxHanlder')
 const path = require('path')
 const routes = require('./routes/index')
 const ErrorRoutesCatch = require('./middleware/ErrorRoutesCatch')
@@ -75,7 +75,9 @@ app
     formLimit: '10mb',
     textLimit: '10mb'
   }))
-  // 检查请求是否合法
+  // ctx
+  .use(CtxHanlder)
+  // 请求合法性校验
   .use(AuthValidator(iRedis))
   .use(routes)
   .use(ErrorRoutes())

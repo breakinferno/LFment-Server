@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
+let schemaInstance = null
 const CommentSchema = new Schema({
   // 评论
   userId: String,
@@ -10,4 +11,17 @@ const CommentSchema = new Schema({
   extra: {} // markModified(extra)
 })
 
-module.exports = mongoose.model('comment', CommentSchema, 'comments')
+module.exports = function () {
+  return {
+    name: `Comment${Date.now()}`,
+    getModel: function () {
+      if (!schemaInstance) {
+        schemaInstance = CommentSchema
+      }
+      return mongoose.model(this.name, schemaInstance, this.name)
+    },
+    getName: function () {
+      return this.name
+    }
+  }
+}

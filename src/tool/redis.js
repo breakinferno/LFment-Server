@@ -24,8 +24,8 @@ class Redis {
     return promiseAdapter(this.client.get, this.client, key)
   }
 
-  hGetRedisAsync (key) {
-    return promiseAdapter(this.client.hget, this.client, 'Apps', key)
+  hGetRedisAsync (key, field) {
+    return promiseAdapter(this.client.hget, this.client, field ? key : 'Apps', field || key)
   }
 
   /**
@@ -63,7 +63,44 @@ class Redis {
     if (err) {
       throw new Error('Redis 插入hash失败： key==>' + appkey + ', value==>' + appsecret)
     }
-    return Promise.resolve(res)
+    return res
+  }
+
+  /**
+   * 将zset某个范围内的key去掉
+   * @param {string} key 键值
+   * @param {number} min 最小值
+   * @param {number}} max 最大值
+   */
+  async zExpire (key, min, max) {
+    return promiseAdapter(this.client.zremrangebyscore, this.client, key, min, max)
+  }
+
+  /**
+   * 获取zset某个成员的score,没有为null
+   * @param {string} key 键名
+   * @param {string} member 成员名
+   */
+  async zget (key, member) {
+    return promiseAdapter(this.client.zscore, this.client, key, member)
+  }
+
+  /**
+   * 添加zset成员
+   * @param {string} key 键名
+   * @param {number}} score 分值
+   * @param {string} member 成员
+   */
+  async zadd (key, score, member) {
+    return promiseAdapter(this.client.zadd, this.client, key, score, member)
+  }
+
+  /**
+   * 返回集合数目
+   * @param {string} key 键名
+   */
+  async zcard (key) {
+    return promiseAdapter(this.client.zcard, this.client, key)
   }
 }
 

@@ -4,10 +4,8 @@ const controllers = require('../controllers/index.js')
 
 const router = new KoaRouter()
 
-router.prefix('/api')
-
 router
-  .post('/comments', controllers.comments.AddComment)
-  .delete('/comments', controllers.comments.DeleteComment)
+  .post('/app', controllers.app.Register)
+  .delete('/app', controllers.app.Delete)
 
 module.exports = router

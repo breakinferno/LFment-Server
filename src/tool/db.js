@@ -13,11 +13,11 @@ const dima = async (promise) => {
 
 class UniverseDB {
   constructor (iRedis, ctx) {
-    this.ctx = ctx
-    this.redis = iRedis
     if (UniverseDB.instance !== null) {
       return UniverseDB.instance
     }
+    this.ctx = ctx
+    this.redis = iRedis
     UniverseDB.instance = this
   }
 
@@ -133,11 +133,11 @@ class UniverseDB {
     const helper = CommentHelper()
     const Comment = helper.getModel()
     const name = helper.getName()
-    // 创建表
+    // 创建App表
     let data = {
       appKey: field,
       appSecret: value,
-      comments: name
+      commentsName: name
     }
     let [err, res] = await dima(new App(data).save())
     if (err) {
@@ -145,9 +145,53 @@ class UniverseDB {
       console.log(data)
       throw new Error(err)
     }
+    if (!res) {
+      return ctx._res(Codes.MONGO_CODES.)
+    }
+    // 创建对应的Commen表
+    let defaultComment = {
+      userId: '',
+      targetId: '',
+      content: '',
+      createdTime: 0,
+      updatedTime: 0,
+      extra: {}
+    };
+    [err, res] = await dima(new Comment(defaultComment).save())
+    if (err) {
+      console.log('mongo创建Comment文档出错！')
+      throw new Error(err)
+    }
+    [err, res] = await dima(Comment.findByIdAndRemove(res._id).exec())
+    if (err) {
+      console.log('mongo清除Comment文档出错')
+      throw new Error(err)
+    }
     // 加入redis
-    await this.redis.registerApp(field, value)
+    [err, res] = await this.redis.registerApp(field, value)
+    if (err) {
+      throw new Error('Redis 插入hash失败： key==>' + field + ', value==>' + value)
+    }
     return data
+  }
+
+  /**
+   * 删除app
+   * @param {string} appkey appkey
+   */
+  async deleteApp (appkey) {
+    // 删除mongo数据
+    let [err, res] = await dima(App.findOneAndDelete({appKey: appkey}).exec())
+    if (err) {
+      console.log('mongo清除App文档出错！')
+      throw new Error(err)
+    }
+    // 删除redis数据
+    [err, res] = await this.redis.expireApp(appkey)
+    if (err) {
+      console.log('redis清除Apps数据出错')
+      throw new Error(err)
+    }
   }
 }
 

@@ -1,37 +1,24 @@
 // const App = require('../models/app')
-const DB = require('../tool/db')
-const uuid = require('node-uuid').v4
-
+const keyAndSecret = require('../tool/key-secret-gen')
 // 注册app
 const Register = async (ctx) => {
-  // type = ctx.params.type
-  // if (!type) {
-  //   ctx.response.status = 422
-  //   ctx.body = {
-  //     err: 'No Post Param'
-  //   }
-  //   return
-  // }
-  // try {
-  //   data = ctx.request.body
-  // } catch (e) {
-  //   handleError(e)
-  // }
-  const app = await DB.addApp('key'+uuid(), 'secret')
+  const {request} = ctx
+  const {body} = request
+  const pair = keyAndSecret(JSON.stringify(body))
+  const app = await ctx.db.addApp(pair.appkey, pair.appsecret)
+  delete app.comments
   ctx.body = app
 }
 
 // 删除app
-const Delete = (ctx) => {
-  let data = {
-    result: 'get',
-    name: ctx.params.name,
-    para: ctx.query
-  }
+const Delete = async (ctx) => {
+  const {request} = ctx
+  const {query} = request
+  await ctx.db.deleteApp(query.appKey)
   ctx.body = {
-    code: 200,
-    msg: 'mdzz',
-    data
+    status: 0,
+    message: '已删除appkey:' + query.appKey,
+    data: {}
   }
 }
 

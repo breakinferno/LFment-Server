@@ -3,34 +3,30 @@
  * @Description: 授权信息校验
  * @Date: 2018-08-30 15:20:08
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-09-06 21:28:57
+ * @Last Modified time: 2018-09-07 18:49:58
  */
 const NodeRSA = require('node-rsa')
 const fs = require('fs')
 const path = require('path')
-const DB = require('../tool/db')
 const LFSDK = require('LFSDK')
 const time = require('../tool/time')
 const Codes = require('../constant/responseCodes')
 const LFUTILS = LFSDK.utils
-const {signer, verifier, encryptData} = LFUTILS
+const {verifier} = LFUTILS
 const MAX_EXPIRE_TIME = require('../config').Redis.expire_time
 
 const secretKeyData = fs.readFileSync(path.join(__dirname, '../../cert/pkcs8_rsa_private_key.pem'))
 
 const sKEY = new NodeRSA(secretKeyData, 'pkcs8-private-pem')
 
-module.exports = (iRedis) => {
+module.exports = () => {
   return async (ctx, next) => {
-    const universeDB = new DB(iRedis, ctx)
+    console.log('start validate')
     if (ctx.url && ctx.url.startsWith('/api')) {
       const nowDate = +Date.now()
       const {request} = ctx
       const {header, body, method, query} = request
-      const {authorization} = header
       const reqId = header['x-requested-id']
-      // authorization 信息
-      const authInfo = authorization.split('Basic ')[1]
       // 还原对象
       const data = ['post'].map(m => m.toUpperCase()).includes(method) ? {...body} : {...query}
       const signature = data.signature
@@ -47,7 +43,7 @@ module.exports = (iRedis) => {
       const timestamp = +data.timestamp
       const Appkey = data.appkey
       // 获取AppSecret
-      const AppSecret = await universeDB.getAppInfo(Appkey)
+      const AppSecret = await ctx.db.getAppInfo(Appkey)
       console.log(`appkey是 ${Appkey}, appsecret 是 : ${AppSecret}`)
       // 参数信息
       // 签名验证
@@ -64,7 +60,7 @@ module.exports = (iRedis) => {
         })
       }
       // 检验是否重复请求
-      await universeDB.getReqInfo(reqId, timestamp)
+      await ctx.db.getReqInfo(reqId, timestamp)
       // const rReqRet = await Redis.setRedisAsync(reqId, value, MAX_EXPIRE_TIME, )
     }
     await next()

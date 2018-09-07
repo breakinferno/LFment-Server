@@ -76,9 +76,9 @@ app
     textLimit: '10mb'
   }))
   // ctx
-  .use(CtxHanlder)
+  .use(CtxHanlder(iRedis))
   // 请求合法性校验
-  .use(AuthValidator(iRedis))
+  .use(AuthValidator())
   .use(routes)
   .use(ErrorRoutes())
 app.listen(SystemConfig.API_server_port)

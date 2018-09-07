@@ -1,15 +1,20 @@
 // mongodb 301 - 400
 const MONGO_CODES = {
   not_exist_key: {
-    code: 301,
+    status: 301,
     message: '数据库不存在该key对应的值，请检查key是否正确！',
+    data: {}
+  },
+  not_exist_right_name_app: {
+    status: 302,
+    message: '找不到collectionName对应的app',
     data: {}
   }
 }
 // redis 201 - 300
 const REDIS_CODES = {
   duplicate_req: {
-    code: 201,
+    status: 201,
     message: '重复的请求',
     data: {}
   }
@@ -17,17 +22,17 @@ const REDIS_CODES = {
 // 安全方面 101 - 200
 const SAFE_CODES = {
   param_decrypt: {
-    code: 101,
+    status: 101,
     message: '无法对参数进行解密，请确保已经正确的进行加密',
     data: {}
   },
   sig_verify_fail: {
-    code: 102,
+    status: 102,
     message: '签名错误，数据可能被篡改，请检查！',
     data: {}
   },
   expire_invalid: {
-    code: 103,
+    status: 103,
     message: '过期时间失效',
     data: {}
   }

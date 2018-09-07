@@ -2,6 +2,7 @@
  * @author breakinferno
  * @description ctx,错误code为负数， code为0时成功请求， 大于0时其他情况
  */
+const DB = require('../tool/db')
 class Hanlder {
   constructor (ctx) {
     this.ctx = ctx
@@ -29,8 +30,11 @@ class Hanlder {
   }
 }
 
-module.exports = async (ctx, next) => {
+module.exports = redis => async (ctx, next) => {
   const hanlder = new Hanlder(ctx)
+  ctx.db = new DB(redis, ctx)
   ctx._res = hanlder.response.bind(hanlder)
   await next()
+  delete ctx.db
+  delete ctx._res
 }

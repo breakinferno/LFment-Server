@@ -17,7 +17,11 @@ const promiseAdapter = (fn, context, ...args) => {
 
 class Redis {
   constructor (client) {
+    if (Redis.instance !== null) {
+      return Redis.instance
+    }
     this.client = client
+    Redis.instance = this
   }
 
   getRedisAsync (key) {
@@ -59,11 +63,19 @@ class Redis {
       appkey = appkey.Appkey
       appsecret = appkey.AppSecret
     }
-    const [err, res] = await this.hSetRedisAsync('Apps', appkey, appsecret)
-    if (err) {
-      throw new Error('Redis 插入hash失败： key==>' + appkey + ', value==>' + appsecret)
+    return this.hSetRedisAsync('Apps', appkey, appsecret)
+  }
+
+  /**
+   * 删除对应的appkey
+   * @param {string} appkey appkey
+   */
+  async expireApp (key, appkey) {
+    if (typeof appkey === 'undefined') {
+      appkey = key
+      key = 'Apps'
     }
-    return res
+    return promiseAdapter(this.client.hdel, this.client, key, appkey)
   }
 
   /**
@@ -103,5 +115,7 @@ class Redis {
     return promiseAdapter(this.client.zcard, this.client, key)
   }
 }
+
+Redis.instance = null
 
 module.exports = Redis

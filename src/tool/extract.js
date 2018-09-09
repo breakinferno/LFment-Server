@@ -5,4 +5,9 @@
 
 module.exports = (ctx, options = {}) => {
   const {body, params, qurey} = ctx
+  return {
+    body,
+    params,
+    qurey
+  }
 }

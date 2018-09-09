@@ -34,7 +34,48 @@ module.exports = redis => async (ctx, next) => {
   const hanlder = new Hanlder(ctx)
   ctx.db = new DB(redis, ctx)
   ctx._res = hanlder.response.bind(hanlder)
-  await next()
-  delete ctx.db
-  delete ctx._res
+  try {
+    await next()
+  } catch (e) {
+    console.log('服务器出错了，错误信息是')
+    console.log(e)
+    // let status = e.status || 500
+    // let message = e.message || '服务器错误'
+    // let data = e.data || {}
+
+    // if (e instanceof Object) { // 错误是 json 错误
+    //   this.body = {
+    //     'status': status,
+    //     'message': message
+    //   }
+    //   if (status === 500) {
+    //     // 触发 koa 统一错误事件，可以打印出详细的错误堆栈 log
+    //     this.app.emit('error', e, this)
+    //   }
+    //   return
+    // }
+
+    // this.status = status
+    // // 根据 status 渲染不同的页面
+    // if (status === 403) {
+    //   this.body = await this.render('/template/403.html', {
+    //     'err': e
+    //   })
+    // }
+    // if (status === 404) {
+    //   this.body = await this.render('/template/404.html', {
+    //     'err': e
+    //   })
+    // }
+    // if (status === 500) {
+    //   this.body = await this.render('/template/500.html', {
+    //     'err': e
+    //   })
+    //   // 触发 koa 统一错误事件，可以打印出详细的错误堆栈 log
+    //   this.app.emit('error', e, this)
+    // }
+  } finally {
+    delete ctx.db
+    delete ctx._res
+  }
 }

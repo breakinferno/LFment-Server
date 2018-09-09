@@ -9,14 +9,61 @@ const MONGO_CODES = {
     status: 302,
     message: '找不到collectionName对应的app',
     data: {}
+  },
+  get_mongo_app_error: {
+    status: 303,
+    message: '获取app数据时后端数据库报错'
+  },
+  add_mongo_app_error: {
+    status: 304,
+    message: '创建app时后端数据库报错'
+  },
+  add_mongo_comment_error: {
+    status: 305,
+    message: '创建评论时后端数据库出错'
+  },
+  delete_mongo_comment_error: {
+    status: 306,
+    message: '删除评论时后端数据库出错'
+  },
+  delete_mongo_app_error: {
+    status: 307,
+    message: '删除APP时后端数据库出错'
   }
 }
 // redis 201 - 300
 const REDIS_CODES = {
   duplicate_req: {
     status: 201,
-    message: '重复的请求',
-    data: {}
+    message: '重复的请求'
+  },
+  get_redis_count_error: {
+    status: 202,
+    message: '获取请求数目出错'
+  },
+  delete_redis_error: {
+    status: 203,
+    message: '删除请求出错'
+  },
+  get_redis_req_error: {
+    status: 204,
+    message: '获取该请求时缓存数据库出错'
+  },
+  add_redis_error: {
+    status: 205,
+    message: '加入请求时缓存数据库出错'
+  },
+  get_redis_app_error: {
+    status: 206,
+    message: '获取app数据时缓存数据库出错'
+  },
+  add_redis_app_error: {
+    status: 207,
+    message: '加入app数据时缓存数据库出错'
+  },
+  delete_redis_app_error: {
+    status: 208,
+    message: '删除app时缓存数据库出错'
   }
 }
 // 安全方面 101 - 200

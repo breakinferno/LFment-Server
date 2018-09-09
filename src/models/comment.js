@@ -40,11 +40,18 @@ module.exports = function () {
       if (!map) {
         let [err, res] = await App.find().exec().then(res => [null, res]).catch(err => [err])
         if (err) {
-          console.log('加载App')
+          console.log('加载App错误')
+          throw new Error({
+            status: -1,
+            message: '加载App出错'
+          })
         }
         // 不存在
         if (!res) {
-          return null
+          throw new Error({
+            status: -2,
+            message: '不存在App表'
+          })
         }
         map = res.reduce((map, app) => {
           const name = app['commentsName']

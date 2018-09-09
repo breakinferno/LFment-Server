@@ -3,7 +3,7 @@
  * @Description: 授权信息校验
  * @Date: 2018-08-30 15:20:08
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-09-07 18:49:58
+ * @Last Modified time: 2018-09-09 12:18:40
  */
 const NodeRSA = require('node-rsa')
 const fs = require('fs')
@@ -37,7 +37,7 @@ module.exports = () => {
           data[key] = sKEY.decrypt(data[key], 'utf-8')
         }
       } catch (err) {
-        ctx._res(Codes.SAFE_CODES.param_decrypt)
+        throw ctx._res(Codes.SAFE_CODES.param_decrypt)
       }
       // 一些关键信息的获取
       const timestamp = +data.timestamp
@@ -50,11 +50,11 @@ module.exports = () => {
       const rSig = verifier(data, signature, AppSecret)
       console.log('veryfier result is: ' + rSig)
       if (!rSig) {
-        return ctx._res(Codes.SAFE_CODES.sig_verify_fail)
+        throw ctx._res(Codes.SAFE_CODES.sig_verify_fail)
       }
       // 校验是否超时
       if (nowDate - timestamp > MAX_EXPIRE_TIME) {
-        return ctx._res({
+        throw ctx._res({
           ...Codes.SAFE_CODES.expire_invalid,
           message: '请求时间失效，只支持' + time(MAX_EXPIRE_TIME) + '内发起的请求'
         })

@@ -1,7 +1,4 @@
 // const App = require('../models/app')
-const DB = require('../tool/db')
-const uuid = require('node-uuid').v4
-
 const AddComment = async (ctx) => {
   // type = ctx.params.type
   // if (!type) {
@@ -16,8 +13,16 @@ const AddComment = async (ctx) => {
   // } catch (e) {
   //   handleError(e)
   // }
-  const app = await DB.addApp('key'+uuid(), 'secret')
-  ctx.body = app
+  // const app = await DB.addApp('key'+uuid(), 'secret')
+  // const cmmnt = ctx.body
+  // const comment = await ctx.db.addComment(cmmnt)
+  ctx.body = {
+    code: 200,
+    message: 'add comment successful',
+    data: {
+      name: 'mdzz'
+    }
+  }
 }
 
 const DeleteComment = (ctx) => {

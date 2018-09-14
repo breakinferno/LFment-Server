@@ -11,6 +11,15 @@ const dima = async (promise) => {
   return promise.then(res => [null, res]).catch(err => [err])
 }
 
+// 当前的commenthelper
+const ch = async (db, app) => {
+  const appInfo = await db.getAppInfo(app)
+  const name = appInfo.split('@')[1]
+  const helper = CommentHelper()
+  const Comment = await helper.getModel(name)
+  return Comment
+}
+
 class UniverseDB {
   constructor (iRedis, ctx) {
     if (UniverseDB.instance !== null) {
@@ -31,19 +40,78 @@ class UniverseDB {
   }
 
   // 添加评论
-  addComment () {
-
+  async addComment (app, data) {
+    const Comment = await ch(this, app)
+    if (data.extra) {
+      data.extra = JSON.stringify(data.extra)
+    }
+    let [err, res] = await dima(new Comment(data).save())
+    if (err) {
+      console.log('mongo创建Comment文档出错！')
+      throw this.ctx._err(Codes.MONGO_CODES.add_mongo_comment_error)
+    }
+    return {
+      message: '添加评论成功',
+      data: res.toObject()
+    }
   }
 
   // 删除评论
-  deleteComment () {
-
+  async deleteComment (app, data) {
+    const Comment = await ch(this, app)
+    const all = /.*/
+    let {commentId, userId, targetId} = data
+    let [err, res] = await dima(commentId
+      ? Comment.findByIdAndRemove(commentId).exec()
+      : Comment.deleteMany({
+        targetId: targetId || all,
+        userId: userId || all
+      }).exec())
+    if (err) {
+      console.log('mongo删除Comment文档时出错')
+      throw this.ctx._err(Codes.MONGO_CODES.delete_mongo_comment_error)
+    }
+    return {
+      message: '删除评论成功',
+      data: (res.toObject && res.toObject()) || res || {}
+    }
   }
 
   // 获取评论
-  getComment () {
-
+  async getComment (app, data) {
+    const Comment = await ch(this, app)
+    const all = /.*/
+    let {commentId, userId, targetId} = data
+    let [err, res] = await dima(commentId
+      ? Comment.findById(commentId).exec()
+      : Comment.find({
+        targetId: targetId || all,
+        userId: userId || all
+      }).exec())
+    if (err) {
+      console.log('mongo获取Comment文档时出错')
+      throw this.ctx._err(Codes.MONGO_CODES.get_mongo_comment_error)
+    }
+    let rt = Array.isArray(res) ? res.map(r => {
+      return r.toObject()
+    }) : res.toObject()
+    return {
+      message: '获取评论成功',
+      data: rt
+    }
   }
+
+  // // 更新评论字段
+  // async updateComment (app, data) {
+  //   const Comment = await ch(this, app)
+  //   return {}
+  // }
+
+  // // 更改评论
+  // async setExtra (app, data) {
+  //   const Comment = await ch(this, app)
+  //   return {}
+  // }
 
   /**
    * 由于redis不能设置set或者hash的field的过期时间，只有key级别的有过期时间
@@ -57,7 +125,7 @@ class UniverseDB {
     let [err, res] = await this.redis.zcard('Reqs')
     if (err) {
       console.log(`redis 获取key为Reqs在[${startTime}--${endTime}]时间的zset时出错！`)
-      throw this.ctx._res(Codes.REDIS_CODES.get_redis_count_error)
+      throw this.ctx._err(Codes.REDIS_CODES.get_redis_count_error)
     }
     // 不存在值
     if (res) {
@@ -65,32 +133,34 @@ class UniverseDB {
       [err, res] = await this.redis.zExpire('Reqs', '-inf', startTime)
       if (err) {
         console.log(`redis 删除key为Reqs在[${startTime}--${endTime}]时间的zset时出错！`)
-        throw this.ctx._res(Codes.REDIS_CODES.delete_redis_error)
+        throw this.ctx._err(Codes.REDIS_CODES.delete_redis_error)
       }
       // 检查是否存在该值
       [err, res] = await this.redis.zget('Reqs', reqId)
       if (err) {
         console.log(`redis 获取reqID为${reqId}的zset时出错！`)
-        throw this.ctx._res(Codes.REDIS_CODES)
+        throw this.ctx._err(Codes.REDIS_CODES)
       }
       if (res) {
         console.log(`redis key为Reqs的zset中最近${REDIS_EXPIRE_TIME}ms已存在该值`)
-        throw this.ctx._res(Codes.REDIS_CODES.duplicate_req)
+        throw this.ctx._err(Codes.REDIS_CODES.duplicate_req)
       }
     }
     // 加入该值
     [err, res] = await this.redis.zadd('Reqs', endTime, reqId)
     if (err) {
       console.log(`redis key为Reqs的zset中添加score为${endTime},member为${reqId}的操作失败!`)
-      throw this.ctx._res(Codes.REDIS_CODES.add_redis_error)
+      throw this.ctx._err(Codes.REDIS_CODES.add_redis_error)
     }
     console.log(`加入新的reqId啦！reqId 是 ${reqId}, timestamp 是 ${endTime}`)
   }
 
   /**
    * 统一的获取数据 Apps使用redis和mongo, 评论现在只使用mongo处理
+   * 注意注意注意：为了方便，将commentName也存在redis里面了， 使用@符号分隔
    * @param {string} key hash键名和mongo集合名(collection)
    * @param {string} field hash域名和mongoid名
+   * @returns {string} appkey@commentName
    */
   async getAppInfo (key, field) {
     let res
@@ -101,24 +171,26 @@ class UniverseDB {
     let [err, value] = await this.redis.hGetRedisAsync(key, field)
     if (err) {
       console.log('redis获取值出错！ key is: ' + key + ' , field is :' + field)
-      throw this.ctx._res(Codes.REDIS_CODES.get_redis_app_error)
+      throw this.ctx._err(Codes.REDIS_CODES.get_redis_app_error)
     }
     // 不存在值, mongo查找，并缓存
     if (!value) {
       [err, value] = await dima(App.findOne().where('appKey').equals(field).exec())
       if (err) {
         console.log('mongodb获取值出错！ appKey is: ' + key)
-        throw this.ctx._res(Codes.MONGO_CODES.get_mongo_app_error)
+        throw this.ctx._err(Codes.MONGO_CODES.get_mongo_app_error)
       }
       if (!value) {
         console.log('数据库不存在该key对应的值，请检查key是否正确！')
-        return this.ctx._res(Codes.MONGO_CODES.not_exist_key)
+        return this.ctx._err(Codes.MONGO_CODES.not_exist_key)
       }
       // redis缓存
-      [err, res] = await this.redis.hSetRedisAsync(key, field, value)
+      value = `${value.appSecret}@${value.commentsName}`
+      // 妈耶
+        [err, res] = await this.redis.hSetRedisAsync(key, field, value)
       if (err) {
         console.log('redis缓存出错！key is: ' + key + ' , field is: ' + field)
-        throw this.ctx._res(Codes.REDIS_CODES.add_redis_app_error)
+        throw this.ctx._err(Codes.REDIS_CODES.add_redis_app_error)
       }
     }
     console.log('DB get data success! key is: ' + key + ', result is: ' + value)
@@ -148,11 +220,11 @@ class UniverseDB {
     if (err) {
       console.log('mongo创建app文档出错！数据为：')
       console.log(data)
-      throw this.ctx._res(Codes.MONGO_CODES.add_mongo_app_error)
+      throw this.ctx._err(Codes.MONGO_CODES.add_mongo_app_error)
     }
 
     // if (!res) {
-    //   return ctx._res(Codes.MONGO_CODES.)
+    //   return ctx._err(Codes.MONGO_CODES.)
     // }
     // 创建对应的Commen表
     const Comment = await helper.getModel()
@@ -167,18 +239,18 @@ class UniverseDB {
     [err, res] = await dima(new Comment(defaultComment).save())
     if (err) {
       console.log('mongo创建Comment文档出错！')
-      throw this.ctx._res(Codes.MONGO_CODES.add_mongo_comment_error)
+      throw this.ctx._err(Codes.MONGO_CODES.add_mongo_comment_error)
     }
     [err, res] = await dima(Comment.findByIdAndRemove(res._id).exec())
     if (err) {
       console.log('mongo清除Comment文档出错')
-      throw this.ctx._res(Codes.MONGO_CODES.delete_mongo_comment_error)
+      throw this.ctx._err(Codes.MONGO_CODES.delete_mongo_comment_error)
     }
     // 加入redis
-    [err, res] = await this.redis.registerApp(field, value)
+    [err, res] = await this.redis.registerApp(field, value + '@' + name)
     if (err) {
       console.log('Redis 插入hash失败： key==>' + field + ', value==>' + value)
-      throw this.ctx._res(Codes.REDIS_CODES.add_redis_app_error)
+      throw this.ctx._err(Codes.REDIS_CODES.add_redis_app_error)
     }
     return data
   }
@@ -192,13 +264,13 @@ class UniverseDB {
     let [err, res] = await dima(App.findOneAndDelete({appKey: appkey}).exec())
     if (err) {
       console.log('mongo清除App文档出错！')
-      throw this.ctx._res(Codes.MONGO_CODES.delete_mongo_app_error)
+      throw this.ctx._err(Codes.MONGO_CODES.delete_mongo_app_error)
     }
     // 删除redis数据
     [err, res] = await this.redis.expireApp(appkey)
     if (err) {
       console.log('redis清除Apps数据出错')
-      throw this.ctx._res(Codes.REDIS_CODES.delete_redis_app_error)
+      throw this.ctx._err(Codes.REDIS_CODES.delete_redis_app_error)
     }
   }
 }

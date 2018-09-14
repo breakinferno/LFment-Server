@@ -2,6 +2,9 @@ const mongoose = require('mongoose')
 const App = require('./app')
 const Schema = mongoose.Schema
 let schemaInstance = null
+
+// 如果存储混合类型的话需要每次都手动标记并且存储
+// 算了直接存成json字符串，最后返回再转回来就是了
 const CommentSchema = new Schema({
   // 评论
   userId: String,
@@ -9,7 +12,8 @@ const CommentSchema = new Schema({
   content: String,
   createdTime: Number,
   updatedTime: Number,
-  extra: {} // markModified(extra)
+  // extra: {} // markModified(extra)
+  extra: String
 })
 
 let map = null
@@ -59,7 +63,7 @@ module.exports = function () {
           return map
         }, {})
       }
-      return model[name]
+      return map[name]
     },
     getName: function () {
       return this.name

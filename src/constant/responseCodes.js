@@ -14,20 +14,24 @@ const MONGO_CODES = {
     status: 303,
     message: '获取app数据时后端数据库报错'
   },
-  add_mongo_app_error: {
+  get_mongo_comment_error: {
     status: 304,
+    message: '获取Comment时后端数据库报错'
+  },
+  add_mongo_app_error: {
+    status: 305,
     message: '创建app时后端数据库报错'
   },
   add_mongo_comment_error: {
-    status: 305,
+    status: 306,
     message: '创建评论时后端数据库出错'
   },
   delete_mongo_comment_error: {
-    status: 306,
+    status: 307,
     message: '删除评论时后端数据库出错'
   },
   delete_mongo_app_error: {
-    status: 307,
+    status: 308,
     message: '删除APP时后端数据库出错'
   }
 }
@@ -82,6 +86,10 @@ const SAFE_CODES = {
     status: 103,
     message: '过期时间失效',
     data: {}
+  },
+  version_error: {
+    status: 104,
+    message: '版本错误，请检查版本'
   }
 }
 // 通常情况 1-100

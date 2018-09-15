@@ -3,7 +3,7 @@
  * @Description: 授权信息校验
  * @Date: 2018-08-30 15:20:08
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-09-14 21:05:02
+ * @Last Modified time: 2018-09-15 11:41:39
  */
 const NodeRSA = require('node-rsa')
 const fs = require('fs')
@@ -19,7 +19,7 @@ const secretKeyData = fs.readFileSync(path.join(__dirname, '../../cert/pkcs8_rsa
 
 const sKEY = new NodeRSA(secretKeyData, 'pkcs8-private-pem')
 
-function rdecrypt(key, data) {
+function rdecrypt (key, data) {
   if (typeof data === 'object') {
     let rt = {}
     Object.keys(data).forEach(k => {

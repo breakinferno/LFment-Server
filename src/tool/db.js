@@ -10,6 +10,7 @@ const REDIS_EXPIRE_TIME = require('../config').Redis.expire_time
 const dima = async (promise) => {
   return promise.then(res => [null, res]).catch(err => [err])
 }
+const omit = require('../lib/omit')
 
 // 当前的commenthelper
 const ch = async (db, app) => {
@@ -52,7 +53,7 @@ class UniverseDB {
     }
     return {
       message: '添加评论成功',
-      data: res.toObject()
+      data: omit({...res.toObject()}, ['_id', '__v'])
     }
   }
 
@@ -73,7 +74,7 @@ class UniverseDB {
     }
     return {
       message: '删除评论成功',
-      data: (res.toObject && res.toObject()) || res || {}
+      data: omit({...(res.toObject && res.toObject()) || res || {}}, ['_id', '__v'])
     }
   }
 
@@ -85,15 +86,15 @@ class UniverseDB {
     let [err, res] = await dima(commentId
       ? Comment.findById(commentId).exec()
       : Comment.find({
-        targetId: targetId || all,
-        userId: userId || all
+        targetId: targetId === '*' ? all : targetId || all,
+        userId: userId === '*' ? all : userId || all
       }).exec())
     if (err) {
       console.log('mongo获取Comment文档时出错')
       throw this.ctx._err(Codes.MONGO_CODES.get_mongo_comment_error)
     }
     let rt = Array.isArray(res) ? res.map(r => {
-      return r.toObject()
+      return omit({...r.toObject()}, ['_id', '__v'])
     }) : res.toObject()
     return {
       message: '获取评论成功',
@@ -163,7 +164,7 @@ class UniverseDB {
    * @returns {string} appkey@commentName
    */
   async getAppInfo (key, field) {
-    let res
+    let res, stash
     if (typeof field === 'undefined') {
       field = key
       key = 'Apps'
@@ -182,16 +183,17 @@ class UniverseDB {
       }
       if (!value) {
         console.log('数据库不存在该key对应的值，请检查key是否正确！')
-        return this.ctx._err(Codes.MONGO_CODES.not_exist_key)
+        throw this.ctx._err(Codes.MONGO_CODES.not_exist_key)
       }
       // redis缓存
-      value = `${value.appSecret}@${value.commentsName}`
+      stash = `${value.appSecret}@${value.commentsName}`;
       // 妈耶
-        [err, res] = await this.redis.hSetRedisAsync(key, field, value)
+        [err, res] = await this.redis.hSetRedisAsync(key, field, stash)
       if (err) {
         console.log('redis缓存出错！key is: ' + key + ' , field is: ' + field)
         throw this.ctx._err(Codes.REDIS_CODES.add_redis_app_error)
       }
+      value = stash
     }
     console.log('DB get data success! key is: ' + key + ', result is: ' + value)
     return value

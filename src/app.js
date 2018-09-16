@@ -5,6 +5,7 @@ const cors = require('koa2-cors')
 const SystemConfig = require('./config').System
 const DBConfig = require('./config').MongoDB
 const CtxHanlder = require('./middleware/ctxHanlder')
+const render = require('koa-views-render')
 const path = require('path')
 const routes = require('./routes/index')
 const ErrorRoutesCatch = require('./middleware/ErrorRoutesCatch')
@@ -63,6 +64,7 @@ app
     credentials: true
   }))
   .use(ErrorRoutesCatch())
+  .use(render(path.resolve(__dirname, '../assets/template')))
   .use(KoaStatic('assets', path.resolve(__dirname, '../assets'))) // Static resource
   .use(KoaBody({
     multipart: true,

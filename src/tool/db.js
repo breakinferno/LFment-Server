@@ -103,16 +103,16 @@ class UniverseDB {
   }
 
   // // 更新评论字段
-  // async updateComment (app, data) {
-  //   const Comment = await ch(this, app)
-  //   return {}
-  // }
+  async updateComment (app, data) {
+    const Comment = await ch(this, app)
+    return {}
+  }
 
   // // 更改评论
-  // async setExtra (app, data) {
-  //   const Comment = await ch(this, app)
-  //   return {}
-  // }
+  async setExtra (app, data) {
+    const Comment = await ch(this, app)
+    return {}
+  }
 
   /**
    * 由于redis不能设置set或者hash的field的过期时间，只有key级别的有过期时间

@@ -11,7 +11,7 @@ script:
 - npm run test
 after_success:
 - chmod 600 ~/.ssh/id_rsa_lfment_server
-- ssh root@real.breakinferno.cn -o StrictHostKeyChecking=no 'cd ~/work/blog && git
+- ssh root@real.breakinferno.cn -o StrictHostKeyChecking=no 'cd ~/work/LFment-Server && git
   pull && ./ci.bash'
 before_install:
 - openssl aes-256-cbc -K $encrypted_570f11ecb315_key -iv $encrypted_570f11ecb315_iv

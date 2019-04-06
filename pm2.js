@@ -1,7 +1,7 @@
 module.exports = {
   apps: [{
-    name: 'e-civ server',
-    script: './src/app.js',
+    name: 'lfment-server',
+    script: './dist/app.js',
     watch: false, // 默认关闭watch 可替换为 ['src']
     ignore_watch: ['node_modules', 'build', 'logs'],
     out_file: './logs/out.log', // 日志输出

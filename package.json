@@ -8,6 +8,7 @@
     "dev": "gulp",
     "build": "babel src -d dist",
     "production": "node dist/app.js",
+    "prod": "npm run build && pm2 startOrRestart pm2.js",
     "test": "echo \"Just skip the test and only for deploy\" && exit 0",
     "test:real": "mocha --inspect -t 4000 -w  src/test/**/*.test.js"
   },
